@@ -1,5 +1,5 @@
 from typing import Dict
-from app.schemas.ticket import TicketStatus, TicketPriority, TicketCategory
+from schemas.ticket import TicketStatus, TicketPriority, TicketCategory
 
 STATUS_LABEL: Dict[TicketStatus, str] = {
     "open": "Open",
