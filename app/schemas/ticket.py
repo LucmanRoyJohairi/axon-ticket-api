@@ -31,3 +31,10 @@ class Ticket(BaseModel):
     # Use standard datetime objects instead of generic strings for better validation
     created_at: datetime 
     updated_at: datetime
+
+
+class TicketListResponse(BaseModel):
+    tickets: list[Ticket]
+    total: int
+    page: int
+    page_size: int
