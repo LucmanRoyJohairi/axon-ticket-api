@@ -1,7 +1,7 @@
 from datetime import datetime
 from fastapi import FastAPI
 from pydantic import BaseModel
-from schemas import Ticket, TicketListResponse
+from schemas import Ticket, TicketListResponse,CreateTicketPayload
 from utils import STATUS_LABEL, PRIORITY_LABEL, CATEGORY_LABEL
 
 app = FastAPI(
@@ -45,3 +45,13 @@ def get_tickets():
         "page": 1,
         "page_size": 10
     } 
+
+# TODO: make a route for ADD Tickets, store in an actual model, will probably need to use an ORM
+
+
+@app.post("/tickets")
+def create_ticket(ticket: CreateTicketPayload):
+    return {
+        "message": f"Ticket `{ticket.title}` created!",
+        "data": ticket
+    }

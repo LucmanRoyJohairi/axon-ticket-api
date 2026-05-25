@@ -38,3 +38,9 @@ class TicketListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+class CreateTicketPayload(BaseModel):
+    title: str
+    description: str
+    priority: TicketPriority | None
