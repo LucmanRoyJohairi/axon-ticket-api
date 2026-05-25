@@ -44,3 +44,4 @@ class CreateTicketPayload(BaseModel):
     title: str
     description: str
     priority: TicketPriority | None
+    category: TicketCategory | None

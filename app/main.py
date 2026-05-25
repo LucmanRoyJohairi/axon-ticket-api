@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -49,9 +50,28 @@ def get_tickets():
 # TODO: make a route for ADD Tickets, store in an actual model, will probably need to use an ORM
 
 
-@app.post("/tickets")
-def create_ticket(ticket: CreateTicketPayload):
-    return {
-        "message": f"Ticket `{ticket.title}` created!",
-        "data": ticket
+@app.post("/tickets", response_model=Ticket)
+def create_ticket(payload: CreateTicketPayload):
+    new_ticket = {
+          # Fields from Postman
+        "title": payload.title,
+        "description": payload.description,
+        "priority": payload.priority,
+        "category": payload.category,
+        
+        "ai_summary": None,
+        "ai_category": None,
+        "ai_priority": None,
+        "assignee_id": None, 
+        
+        # System-generated fields
+        "id": str(uuid.uuid4()),
+        "status": "open",
+        "creator_id": "usr-123",
+        "ai_processed": False,
+        "created_at": datetime.now(),
+        "updated_at": datetime.now(),
     }
+
+
+    return new_ticket
