@@ -1,1 +1,1 @@
-from .ticket import Ticket, TicketListResponse, CreateTicketPayload
+from app.schemas.ticket import Ticket, TicketListResponse, CreateTicketPayload

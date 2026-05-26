@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy import String, Boolean, DateTime
 from sqlalchemy.orm import Mapped, mapped_column
-from database import Base #absolute import 🤓
+from app.database import Base #absolute import 🤓
 
 class Ticket(Base):
 

@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "axon-api"
+version = "0.1.0"
+dependencies = []
+
+# 🔥 ADD THIS PART HERE
+[tool.setuptools.packages.find]
+include = ["app*"]

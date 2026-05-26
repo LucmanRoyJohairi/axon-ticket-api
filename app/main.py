@@ -3,10 +3,10 @@ from datetime import datetime
 from fastapi import FastAPI, Depends
 from pydantic import BaseModel
 from schemas import Ticket as TicketSchema, TicketListResponse,CreateTicketPayload
-from models import Ticket as TicketModel
 from utils import STATUS_LABEL, PRIORITY_LABEL, CATEGORY_LABEL
-from database import get_db, engine, Base
-from models import *
+from app.database import get_db, engine, Base
+from app.models import Ticket as TicketModel
+from app.models import *
 
 # This runs once when the server starts
 Base.metadata.create_all(bind=engine)
