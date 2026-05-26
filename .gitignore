@@ -1,4 +1,18 @@
+# Python build artifacts
+*.egg-info/
 __pycache__/
+*.pyc
+
+
+# Local environment
 .venv/
 venv/
 .env
+
+# Alembic local configurations
+alembic.ini
+alembic/__pycache__/
+
+# Database/IDE specific
+.idea/
+.vscode/
