@@ -1,9 +1,15 @@
 import uuid
 from datetime import datetime
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from pydantic import BaseModel
-from schemas import Ticket, TicketListResponse,CreateTicketPayload
+from schemas import Ticket as TicketSchema, TicketListResponse,CreateTicketPayload
+from models import Ticket as TicketModel
 from utils import STATUS_LABEL, PRIORITY_LABEL, CATEGORY_LABEL
+from database import get_db, engine, Base
+from models import *
+
+# This runs once when the server starts
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Axon API",
@@ -50,28 +56,43 @@ def get_tickets():
 # TODO: make a route for ADD Tickets, store in an actual model, will probably need to use an ORM
 
 
-@app.post("/tickets", response_model=Ticket)
-def create_ticket(payload: CreateTicketPayload):
-    new_ticket = {
-          # Fields from Postman
-        "title": payload.title,
-        "description": payload.description,
-        "priority": payload.priority,
-        "category": payload.category,
+@app.post("/tickets", response_model=TicketSchema)
+def create_ticket(payload: CreateTicketPayload, db: Session = Depends(get_db)):
+    # new_ticket = {
+    #       # Fields from Postman
+    #     "title": payload.title,
+    #     "description": payload.description,
+    #     "priority": payload.priority,
+    #     "category": payload.category,
         
-        "ai_summary": None,
-        "ai_category": None,
-        "ai_priority": None,
-        "assignee_id": None, 
+    #     "ai_summary": None,
+    #     "ai_category": None,
+    #     "ai_priority": None,
+    #     "assignee_id": None, 
         
-        # System-generated fields
-        "id": str(uuid.uuid4()),
-        "status": "open",
-        "creator_id": "usr-123",
-        "ai_processed": False,
-        "created_at": datetime.now(),
-        "updated_at": datetime.now(),
-    }
+    #     # System-generated fields
+    #     "id": str(uuid.uuid4()),
+    #     "status": "open",
+    #     "creator_id": "usr-123",
+    #     "ai_processed": False,
+    #     "created_at": datetime.now(),
+    #     "updated_at": datetime.now(),
+    # }
+
+
+    new_ticket = TicketModel(
+        title=payload.title,
+        description=payload.description,
+        priority=payload.priority,
+        category=payload.category,
+        creator_id="usr-123" 
+        # Everything else (ID, status, timestamps, AI fields) 
+        # is handled by the Model defaults or is Nullable.
+    )
+
+    db.add(new_ticket)
+    db.commit()
+    db.refresh(new_ticket)
 
 
     return new_ticket
