@@ -1,1 +1,1 @@
-from app.utils.labels import STATUS_LABEL, PRIORITY_LABEL, CATEGORY_LABEL
+from .labels import STATUS_LABEL, PRIORITY_LABEL, CATEGORY_LABEL
