@@ -1,9 +1,10 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from app.config import settings
 
 
 #TODO: Add to environment variable
-SQLALCHEMY_DATABASE_URL  = ''
+SQLALCHEMY_DATABASE_URL  = settings.database_url
 
 
 # engine manages the connection
