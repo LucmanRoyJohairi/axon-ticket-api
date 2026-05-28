@@ -1,9 +1,6 @@
-import uuid
-from datetime import datetime
 from fastapi import FastAPI, Depends, Query, HTTPException
 from pydantic import BaseModel
 from schemas import Ticket as TicketSchema, TicketListResponse,CreateTicketPayload
-from utils import STATUS_LABEL, PRIORITY_LABEL, CATEGORY_LABEL
 from app.database import get_db, engine, Base
 from app.models import Ticket as TicketModel
 from app.models import *
