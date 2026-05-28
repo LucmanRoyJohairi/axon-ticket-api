@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from fastapi import FastAPI, Depends, Query
+from fastapi import FastAPI, Depends, Query, HTTPException
 from pydantic import BaseModel
 from schemas import Ticket as TicketSchema, TicketListResponse,CreateTicketPayload
 from utils import STATUS_LABEL, PRIORITY_LABEL, CATEGORY_LABEL
@@ -8,6 +8,7 @@ from app.database import get_db, engine, Base
 from app.models import Ticket as TicketModel
 from app.models import *
 from sqlalchemy import select, func
+from sqlalchemy.orm import Session
 
 # This runs once when the server starts
 Base.metadata.create_all(bind=engine)
@@ -58,8 +59,20 @@ def get_tickets(
     }
 
 
+@app.get("/tickets/{ticket_id}", response_model=TicketSchema)
+def get_single_ticket(ticket_id: str, db: Session = Depends(get_db)):
+    
+    statement = select(TicketModel).where(TicketModel.id == ticket_id)
+    result = db.execute(statement)
+    ticket = result.scalar_one_or_none()
 
-# TODO: make a route for ADD Tickets, store in an actual model, will probably need to use an ORM
+    #raise an exception if ticket is not found
+    if ticket is None:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+
+    return ticket
+
+
 
 
 @app.post("/tickets", response_model=TicketSchema)
