@@ -131,7 +131,7 @@ def create_ticket(payload: CreateTicketPayload, db: Session = Depends(get_db)):
 @app.delete("/tickets/{ticket_id}/archive", response_model=DeleteTicketResponse, status_code=status.HTTP_200_OK)
 def delete_ticket(ticket_id: str, db: Session = Depends(get_db)):
 
-    statement = select(TicketModel).where(TicketModel.id == ticket_id)
+    statement = select(TicketModel).where(TicketModel.id == ticket_id, TicketModel.is_deleted == False)
     result = db.execute(statement)
     matching_ticket = result.scalar_one_or_none()
 
@@ -145,3 +145,23 @@ def delete_ticket(ticket_id: str, db: Session = Depends(get_db)):
     # db.refresh(matching_ticket) <- not needed since we are just returning a message and not retrieving the data again
 
     return {"message" : f"Ticket `{ticket_id}` has been deleted"}
+
+
+#restore soft deleted
+@app.patch("/tickets/{ticket_id}/restore", response_model=DeleteTicketResponse, status_code=status.HTTP_200_OK)
+def restore_ticket(ticket_id: str, db: Session = Depends(get_db)):
+
+    statement = select(TicketModel).where(TicketModel.id == ticket_id, TicketModel.is_deleted == True)
+    result = db.execute(statement)
+    matching_ticket = result.scalar_one_or_none()
+
+    if matching_ticket is None:
+        raise HTTPException(status_code=404, detail="Ticket is not Found")
+    
+
+    matching_ticket.is_deleted = False
+    # db.delete(matching_ticket) <- I think this is for hard delete?
+    db.commit()
+    # db.refresh(matching_ticket) <- not needed since we are just returning a message and not retrieving the data again
+
+    return {"message" : f"Ticket `{ticket_id}` has been restored"}
