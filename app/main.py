@@ -1,6 +1,6 @@
-from fastapi import FastAPI, Depends, Query, HTTPException
+from fastapi import FastAPI, Depends, Query, HTTPException, status
 from pydantic import BaseModel
-from schemas import Ticket as TicketSchema, TicketListResponse,CreateTicketPayload, UpdateTicketPayload
+from schemas import Ticket as TicketSchema, TicketListResponse,CreateTicketPayload, UpdateTicketPayload, DeleteTicketResponse
 from app.database import get_db, engine, Base
 from app.models import Ticket as TicketModel
 from app.models import *
@@ -125,3 +125,23 @@ def create_ticket(payload: CreateTicketPayload, db: Session = Depends(get_db)):
 
 
     return new_ticket
+
+
+#Soft delete
+@app.delete("/tickets/{ticket_id}/archive", response_model=DeleteTicketResponse, status_code=status.HTTP_200_OK)
+def delete_ticket(ticket_id: str, db: Session = Depends(get_db)):
+
+    statement = select(TicketModel).where(TicketModel.id == ticket_id)
+    result = db.execute(statement)
+    matching_ticket = result.scalar_one_or_none()
+
+    if matching_ticket is None:
+        raise HTTPException(status_code=404, detail="Ticket is not Found")
+    
+
+    matching_ticket.is_deleted = True
+    # db.delete(matching_ticket) <- I think this is for hard delete?
+    db.commit()
+    # db.refresh(matching_ticket) <- not needed since we are just returning a message and not retrieving the data again
+
+    return {"message" : f"Ticket `{ticket_id}` has been deleted"}

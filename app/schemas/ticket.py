@@ -54,3 +54,6 @@ class UpdateTicketPayload(BaseModel):
     status: str
     assignee_id: str
     priority: TicketPriority | None
+
+class DeleteTicketResponse(BaseModel):
+    message: str
