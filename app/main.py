@@ -70,7 +70,7 @@ def get_single_ticket(ticket_id: str, db: Session = Depends(get_db)):
     return ticket
 
 
-@app.post("/tickets/{ticket_id}", response_model=TicketSchema)
+@app.patch("/tickets/{ticket_id}", response_model=TicketSchema)
 def update_single_ticket(
     ticket_id: str,
     payload: UpdateTicketPayload,
@@ -89,10 +89,14 @@ def update_single_ticket(
     if matching_ticket is None:
         raise HTTPException(status_code=404, detail="Ticket not found")
 
+    #this creates a python dictionary i.e. {"status":in_progress, "priority":"low"}
+    update_data = payload.model_dump(exclude_unset=True)
 
-    matching_ticket.status = payload.status
-    # matching_ticket.assignee_id = payload.assignee_id
-    matching_ticket.priority = payload.priority
+    # we use a loop here so that we don't have to manually assign or update the properties in the dictionary
+    for key, value in update_data.items():
+        setattr(matching_ticket, key, value)
+
+
 
     # Save changes to the DB and refreshes the object
     db.commit()
