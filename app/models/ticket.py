@@ -21,5 +21,6 @@ class Ticket(Base):
     ai_processed: Mapped[bool] = mapped_column(Boolean, default=False)
     
     creator_id: Mapped[str] = mapped_column(String)
+    assignee_id: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now, onupdate=datetime.now)
