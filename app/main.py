@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, Query, HTTPException
 from pydantic import BaseModel
-from schemas import Ticket as TicketSchema, TicketListResponse,CreateTicketPayload
+from schemas import Ticket as TicketSchema, TicketListResponse,CreateTicketPayload, UpdateTicketPayload
 from app.database import get_db, engine, Base
 from app.models import Ticket as TicketModel
 from app.models import *
@@ -70,6 +70,35 @@ def get_single_ticket(ticket_id: str, db: Session = Depends(get_db)):
     return ticket
 
 
+@app.post("/tickets/{ticket_id}", response_model=TicketSchema)
+def update_single_ticket(
+    ticket_id: str,
+    payload: UpdateTicketPayload,
+    db: Session = Depends(get_db)
+):
+    statement = select(TicketModel).where(TicketModel.id == ticket_id)
+    result = db.execute(statement)
+    matching_ticket = result.scalar_one_or_none()
+
+     # 1. Print a specific attribute to your terminal console
+    # if matching_ticket:
+    #     print("DATABASE FOUND TICKET:", matching_ticket.title) # <--- Check your terminal!
+    # else:
+    #     print("DATABASE RETURNED NONE")
+
+    if matching_ticket is None:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+
+
+    matching_ticket.status = payload.status
+    # matching_ticket.assignee_id = payload.assignee_id
+    matching_ticket.priority = payload.priority
+
+    # Save changes to the DB and refreshes the object
+    db.commit()
+    db.refresh(matching_ticket)
+
+    return matching_ticket
 
 
 @app.post("/tickets", response_model=TicketSchema)
