@@ -8,7 +8,7 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import Session
 
 # This runs once when the server starts
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Axon API",
