@@ -33,7 +33,7 @@ def get_tickets(
     skip = (page - 1) * page_size
 
     # 2. Get the TOTAL count of tickets in the DB
-    count_statement = select(func.count()).select_from(TicketModel)
+    count_statement = select(func.count()).where(TicketModel.is_deleted == False).select_from(TicketModel)
     total_count = db.execute(count_statement).scalar() or 0
 
 
@@ -41,7 +41,7 @@ def get_tickets(
     # .limit() restricts the amount, offset() skips the previous pages
 
     # query statement
-    statement = select(TicketModel).offset(skip).limit(page_size)
+    statement = select(TicketModel).where(TicketModel.is_deleted == False).offset(skip).limit(page_size)
 
     result = db.execute(statement)
 
@@ -59,7 +59,7 @@ def get_tickets(
 @app.get("/tickets/{ticket_id}", response_model=TicketSchema)
 def get_single_ticket(ticket_id: str, db: Session = Depends(get_db)):
     
-    statement = select(TicketModel).where(TicketModel.id == ticket_id)
+    statement = select(TicketModel).where(TicketModel.id == ticket_id, TicketModel.is_deleted == False)
     result = db.execute(statement)
     ticket = result.scalar_one_or_none()
 
@@ -76,7 +76,7 @@ def update_single_ticket(
     payload: UpdateTicketPayload,
     db: Session = Depends(get_db)
 ):
-    statement = select(TicketModel).where(TicketModel.id == ticket_id)
+    statement = select(TicketModel).where(TicketModel.id == ticket_id, TicketModel.is_deleted == False)
     result = db.execute(statement)
     matching_ticket = result.scalar_one_or_none()
 
