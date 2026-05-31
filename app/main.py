@@ -1,11 +1,14 @@
 from fastapi import FastAPI, Depends, Query, HTTPException, status
 from pydantic import BaseModel
 from schemas import Ticket as TicketSchema, TicketListResponse,CreateTicketPayload, UpdateTicketPayload, DeleteTicketResponse
+from schemas import UserCreate, UserRequest, UserResponse, Token
 from app.database import get_db, engine, Base
 from app.models import Ticket as TicketModel
+from app.models import User as UserModel
 from app.models import *
 from sqlalchemy import select, func
 from sqlalchemy.orm import Session
+from security import hash_password, verify_password, create_access_token
 
 # This runs once when the server starts
 # Base.metadata.create_all(bind=engine)
@@ -165,3 +168,49 @@ def restore_ticket(ticket_id: str, db: Session = Depends(get_db)):
     # db.refresh(matching_ticket) <- not needed since we are just returning a message and not retrieving the data again
 
     return {"message" : f"Ticket `{ticket_id}` has been restored"}
+
+
+# Registration
+@app.post("/auth/register", response_model=UserResponse)
+def register_user(payload: UserCreate, db: Session = Depends(get_db)):
+    statement = select(UserModel).where(UserModel.email == payload.email)
+    result = db.execute(statement)
+    matching_user = result.scalar_one_or_none()
+
+    if matching_user:
+        raise HTTPException(status_code=400, detail="email already in use")
+    
+    hashed = hash_password(payload.password)
+
+    new_user = UserModel(
+        email=payload.email,
+        hashed_password=hashed,
+        full_name=payload.full_name
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return new_user
+
+
+@app.post("/auth/login", response_model=Token)
+def login_user(payload: UserRequest , db: Session = Depends(get_db)):
+    statement = select(UserModel).where(UserModel.email == payload.email)
+    result = db.execute(statement)
+    matching_user = result.scalar_one_or_none()
+
+    if matching_user is None:
+        raise HTTPException(status_code=404, detail="Email or Password is incorrect")
+
+    is_valid = verify_password(payload.password, matching_user.hashed_password)
+
+    if not is_valid:
+        raise HTTPException(status_code=404, detail="Email or Password is incorrect")
+
+    # generate access token and return JWT
+    access_token = create_access_token(data={"sub": matching_user.email})
+    return {
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
