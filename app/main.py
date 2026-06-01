@@ -7,6 +7,7 @@ from app.database import get_db, engine, Base
 from app.models import Ticket as TicketModel
 from app.models import User as UserModel
 from app.models import *
+from app.security import get_current_user
 from sqlalchemy import select, func
 from sqlalchemy.orm import Session
 from security import hash_password, verify_password, create_access_token
@@ -29,7 +30,8 @@ def health_check():
 def get_tickets(
     page: int = Query(default=1,ge=1), #default to page 1, must be greater than 1
     page_size: int = Query(default=10, ge=1, le=100), #default to page size of 10, must be greater than 1, max 100
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user) #checks if token is valid during request
 ):
 
     # 1. Calculate how many records to skip
@@ -61,7 +63,11 @@ def get_tickets(
 
 
 @app.get("/tickets/{ticket_id}", response_model=TicketSchema)
-def get_single_ticket(ticket_id: str, db: Session = Depends(get_db)):
+def get_single_ticket(
+    ticket_id: str, 
+    db: Session = Depends(get_db), 
+    current_user: UserModel = Depends(get_current_user) #checks if token is valid during request
+):
     
     statement = select(TicketModel).where(TicketModel.id == ticket_id, TicketModel.is_deleted == False)
     result = db.execute(statement)
@@ -78,7 +84,8 @@ def get_single_ticket(ticket_id: str, db: Session = Depends(get_db)):
 def update_single_ticket(
     ticket_id: str,
     payload: UpdateTicketPayload,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user) #checks if token is valid during request
 ):
     statement = select(TicketModel).where(TicketModel.id == ticket_id, TicketModel.is_deleted == False)
     result = db.execute(statement)
@@ -110,7 +117,12 @@ def update_single_ticket(
 
 
 @app.post("/tickets", response_model=TicketSchema)
-def create_ticket(payload: CreateTicketPayload, db: Session = Depends(get_db)):
+def create_ticket(
+    payload: CreateTicketPayload,
+    db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user) #checks if token is valid during request
+
+):
 
 
     new_ticket = TicketModel(
@@ -133,7 +145,11 @@ def create_ticket(payload: CreateTicketPayload, db: Session = Depends(get_db)):
 
 #Soft delete
 @app.delete("/tickets/{ticket_id}/archive", response_model=DeleteTicketResponse, status_code=status.HTTP_200_OK)
-def delete_ticket(ticket_id: str, db: Session = Depends(get_db)):
+def delete_ticket(
+    ticket_id: str, 
+    db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user) #checks if token is valid during request    
+):
 
     statement = select(TicketModel).where(TicketModel.id == ticket_id, TicketModel.is_deleted == False)
     result = db.execute(statement)
@@ -153,7 +169,11 @@ def delete_ticket(ticket_id: str, db: Session = Depends(get_db)):
 
 #restore soft deleted
 @app.patch("/tickets/{ticket_id}/restore", response_model=DeleteTicketResponse, status_code=status.HTTP_200_OK)
-def restore_ticket(ticket_id: str, db: Session = Depends(get_db)):
+def restore_ticket(
+    ticket_id: str, 
+    db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user) #checks if token is valid during request    
+):
 
     statement = select(TicketModel).where(TicketModel.id == ticket_id, TicketModel.is_deleted == True)
     result = db.execute(statement)
