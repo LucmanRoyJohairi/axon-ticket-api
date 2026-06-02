@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     secret_key: str
     algorithm: str
     access_token_expiry_minutes: int
+    anthropic_api_key: str
 
     # This tells from Pydantic to read from a .env file
     model_config = SettingsConfigDict(env_file=".env")

@@ -57,3 +57,10 @@ class UpdateTicketPayload(BaseModel):
 
 class DeleteTicketResponse(BaseModel):
     message: str
+
+
+# AI
+class TicketAnalysisResponse(BaseModel):
+    ai_summary: str
+    ai_category: TicketCategory
+    ai_priority: TicketPriority
