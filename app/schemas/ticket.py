@@ -64,3 +64,6 @@ class TicketAnalysisResponse(BaseModel):
     ai_summary: str
     ai_category: TicketCategory
     ai_priority: TicketPriority
+
+class TestAIConnectivityPayload(BaseModel):
+    prompt: str

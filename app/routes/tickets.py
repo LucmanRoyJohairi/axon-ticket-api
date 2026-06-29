@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from fastapi import Depends, Query, HTTPException, status
-from schemas import Ticket as TicketSchema, TicketListResponse,CreateTicketPayload, UpdateTicketPayload, DeleteTicketResponse
+from schemas import Ticket as TicketSchema, TicketListResponse,CreateTicketPayload, UpdateTicketPayload, DeleteTicketResponse, TestAIConnectivityPayload
 from app.database import get_db
 from app.models import Ticket as TicketModel
 from app.models import User as UserModel
@@ -8,11 +8,19 @@ from app.models import *
 from app.security import get_current_user
 from sqlalchemy import select, func
 from sqlalchemy.orm import Session
+from services.ticket_classifier import classify_ticket_content
+from services.test_service import test_ai_connectivity
 
 router = APIRouter(
     prefix="/tickets",
     tags=["tickets"]
 )
+
+@router.post("/test-ai")
+def test_ai_endpoint(payload: TestAIConnectivityPayload):
+    response = test_ai_connectivity(payload.prompt)
+    
+    return response
 
 @router.get("", response_model=TicketListResponse)
 def get_tickets(
@@ -111,14 +119,26 @@ def create_ticket(
     current_user: UserModel = Depends(get_current_user) #checks if token is valid during request
 
 ):
-
+    
+    # Run Ticket Data through Claude 3.5 Haiku
+    classified_result = classify_ticket_content(payload.title, payload.description)
+    
+    # Determine if the classification actually succeeded
+    is_success = classified_result.get("ai_category") is not None
 
     new_ticket = TicketModel(
         title=payload.title,
         description=payload.description,
         priority=payload.priority,
         category=payload.category,
-        creator_id="usr-123" 
+        creator_id="usr-123", 
+
+         # Store specific AI-generated analysis fields
+        ai_summary=classified_result.get("ai_summary"),
+        ai_category=classified_result.get("ai_category"),
+        ai_priority=classified_result.get("ai_priority"),
+        ai_processed=is_success
+
         # Everything else (ID, status, timestamps, AI fields) 
         # is handled by the Model defaults or is Nullable.
     )
