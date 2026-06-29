@@ -43,3 +43,4 @@ websockets==16.0
 sqlalchemy>=2.0.0
 asyncpg
 alembic
+pgvector
