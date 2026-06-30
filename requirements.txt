@@ -45,3 +45,5 @@ asyncpg
 alembic
 pgvector
 anthropic
+sentence-transformers
+psycopg2-binary
