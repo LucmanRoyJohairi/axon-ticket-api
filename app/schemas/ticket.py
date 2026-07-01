@@ -67,3 +67,8 @@ class TicketAnalysisResponse(BaseModel):
 
 class TestAIConnectivityPayload(BaseModel):
     prompt: str
+
+
+# Embedding Model
+class EmbeddingRequest(BaseModel):
+    text: str
